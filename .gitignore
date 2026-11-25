@@ -1,0 +1,19 @@
+# Python tooling and build outputs
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Local configuration and runtime files
+.env
+.env.*
+!.env.example
+profiles.json
+vault.key
+**/mcp/tokens.json
+ssh4a-status.json
+*.sock

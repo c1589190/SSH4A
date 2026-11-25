@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ssh4a"
+version = "0.0.1a0"
+description = "Headless SSH for agents"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anyio>=4.9,<5",
+    "cryptography>=44",
+    "paramiko>=4,<6",
+    "pydantic>=2.11,<3",
+    "starlette>=1,<2",
+    "mcp>=2.3,<3",
+    "uvicorn>=0.34,<1",
+]
+
+[project.scripts]
+ssh4a = "ssh4a.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ssh4a"]
+
+[dependency-groups]
+dev = ["httpx2>=2,<3", "pytest>=8,<10", "ruff>=0.12,<1"]
