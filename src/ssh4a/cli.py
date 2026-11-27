@@ -126,6 +126,35 @@ def connected(args, store: Profiles):
         yield transport
 
 
+def list_command(args, store: Profiles) -> int:
+    profiles = store.list()
+    if args.json:
+        print(json.dumps(profiles, ensure_ascii=False, indent=2))
+    elif not profiles:
+        print("No saved profiles.")
+    else:
+        rows = [("NAME", "HOST", "PORT", "HAS_PASSWORD", "USER")]
+        for profile in profiles:
+            values = (
+                profile["name"],
+                profile["host"],
+                str(profile["port"]),
+                "yes" if profile["has_password"] else "no",
+                profile["user"],
+            )
+            rows.append(
+                tuple(value if value.isprintable() else repr(value) for value in values)
+            )
+        name_width = max(len(row[0]) for row in rows)
+        host_width = max(len(row[1]) for row in rows)
+        for name, host, port, has_password, user in rows:
+            print(
+                f"{name:<{name_width}}  {host:<{host_width}}  {port:>5}"
+                f"  {has_password:<12}  {user}"
+            )
+    return 0
+
+
 def profile_command(args, store: Profiles) -> int:
     if args.action in ("add", "update"):
         store.save(
@@ -141,8 +170,7 @@ def profile_command(args, store: Profiles) -> int:
     elif args.action == "reveal":
         print(store.reveal(args.name, args.field))
     else:
-        data = store.list() if args.action == "list" else store.show(args.name)
-        print(json.dumps(data, ensure_ascii=False, indent=2))
+        print(json.dumps(store.show(args.name), ensure_ascii=False, indent=2))
     return 0
 
 
@@ -338,10 +366,16 @@ def build_parser():
         help="read the password from stdin instead of prompting",
     )
 
+    list_profiles = commands.add_parser("list", help="list all saved SSH profiles")
+    list_profiles.set_defaults(handler=list_command)
+    list_profiles.add_argument("--json", action="store_true", help="output JSON")
+
     profile = commands.add_parser("profile", help="manage saved connections")
     profile.set_defaults(handler=profile_command)
     actions = profile.add_subparsers(dest="action", required=True)
-    actions.add_parser("list", help="list saved profiles")
+    actions.add_parser("list", help="list saved profiles as JSON").set_defaults(
+        handler=list_command, json=True
+    )
     for action in ("add", "update"):
         edit = actions.add_parser(action)
         edit.add_argument("name")

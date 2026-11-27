@@ -29,9 +29,12 @@ ssh4a exec --profile work -- 'id -un && hostname'
 ```sh
 ssh4a add server.example.org deploy --port 2222 --name work
 ssh4a '[2001:db8::10]:2222' deploy --name ipv6
-ssh4a profile list
+ssh4a list
+ssh4a list --json
 ssh4a profile show work
 ```
+
+`ssh4a list` 按别名列出当前配置目录中的全部连接，显示主机、端口、用户名和是否保存了密码。脚本和 Agent 可用 `ssh4a list --json`，输出与 `ssh4a profile list` 相同。没有配置时，表格模式会显示提示，JSON 模式返回 `[]`。
 
 这两个添加示例可以独立使用。已有别名用 `profile update` 修改，用 `profile delete NAME` 删除。外部程序可通过标准输入提供密码，ssh4a 会保留密码中的空白，并移除至多一个末尾 LF 或 CRLF。以下命令中的 `trusted-password-provider` 代表调用方自己的凭据来源。
 

@@ -16,6 +16,50 @@ def test_xdg(monkeypatch, tmp_path):
     assert config_path().is_absolute()
 
 
+def test_list_empty_config(config):
+    assert invoke(config, "list").stdout == b"No saved profiles.\n"
+    assert json.loads(invoke(config, "list", "--json").stdout) == []
+    assert not config.exists()
+
+
+def test_list_saved_profiles(config):
+    store = Profiles(config)
+    store.save("z-work", create=True, host="2001:db8::2", user="部署", port=2222)
+    store.save(
+        "a-backup",
+        create=True,
+        host="backup.example.org",
+        user="backup",
+        password="secret",
+    )
+    (config / "vault.key").unlink()
+
+    table = invoke(config, "list").stdout.decode()
+    assert [line.split() for line in table.splitlines()] == [
+        ["NAME", "HOST", "PORT", "HAS_PASSWORD", "USER"],
+        ["a-backup", "backup.example.org", "22", "yes", "backup"],
+        ["z-work", "2001:db8::2", "2222", "no", "部署"],
+    ]
+    output = invoke(config, "list", "--json").stdout
+    assert output == invoke(config, "profile", "list").stdout
+    assert json.loads(output) == [
+        {
+            "name": "a-backup",
+            "host": "backup.example.org",
+            "port": 22,
+            "user": "backup",
+            "has_password": True,
+        },
+        {
+            "name": "z-work",
+            "host": "2001:db8::2",
+            "port": 2222,
+            "user": "部署",
+            "has_password": False,
+        },
+    ]
+
+
 def test_encryption_and_explicit_reveal(config):
     first = " leading 远端 trailing  "
     invoke(
